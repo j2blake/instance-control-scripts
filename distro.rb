@@ -76,7 +76,7 @@ class GitDistro < Distro
     puts "    Vitro:"
     Dir.chdir(@props.vitro_path) { format_git_status(`git status`) }
   end
-  
+
   def format_git_status(text)
     puts "        #{text.split("\n").join("\n        ")}"
   end
