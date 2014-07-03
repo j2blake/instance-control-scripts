@@ -24,7 +24,6 @@ Eventually, we want a display like this:
 $: << File.dirname(File.expand_path(__FILE__))
 require 'common'
 require 'pathname'
-require 'rexml/document'
 
 def show_instance_info()
   path = $settings.instance_path
@@ -40,90 +39,54 @@ def show_instance_info()
 end
 
 def show_source_status()
-  if is_git($settings.vivo_source)
-    show_git_status()
-  else
+  if @distro.is_release
     show_release_status()
+  else
+    show_git_status()
   end
+end
+
+def show_release_status()
+  separator()
+  puts "Source status: Released distribution: #{@distro.release_info}"
 end
 
 def show_git_status()
   separator()
   puts "git status:"
   puts "    VIVO:"
-  Dir.chdir($settings.vivo_source) { format_git_status(`git status`) }
+  Dir.chdir(@distro.vivo_path) { format_git_status(`git status`) }
   puts "    Vitro:"
-  Dir.chdir($settings.vitro_source) { format_git_status(`git status`) }
+  Dir.chdir(@distro.vitro_path) { format_git_status(`git status`) }
 end
 
 def format_git_status(text)
   puts "        #{text.split("\n").join("\n        ")}"
 end
 
-def show_release_status()
-  revision_info = get_revision_info($settings.vivo_source)
-  separator()
-  puts  "Source status: Released distribution: #{revision_info || "Unknown release."}"
-end
-
 def show_tomcat_status()
-  # create an array of the paths of the running tomcats and their principal port numbers
-  tomcat_info = []
-  ps = `ps -ef | grep -e '-Dcatalina.home'`
-  ps.split("\n").each() do |line|
-    matches = /-Dcatalina.home=(\S+)/.match(line)
-    if matches
-      tomcat_path = matches[1]
-      tomcat_port = find_tomcat_port(tomcat_path)
-      tomcat_info << {:path => tomcat_path, :port => tomcat_port}
-    end
-  end
-
-  if $settings.catalina_home
-    my_tomcat_status = "Tomcat is not running"
-    # dereference any symbolic links in the catalina_home
-    begin
-      my_tomcat_path = Pathname.new($settings.catalina_home).realpath.to_s
-    rescue
-      my_tomcat_status = "No Tomcat at #{$settings.catalina_home}"
-      my_tomcat_path = nil
-    end
-  else
-    my_tomcat_status = "Tomcat is not defined"
-    my_tomcat_path = nil
-  end
-
-  tomcat_info.select!() do |info|
-    if info[:path] == my_tomcat_path
-      my_tomcat_status = "Tomcat is running on port #{info[:port]}"
-      false
-    else
-      true
-    end
-  end
+  status = figure_tomcat_status()
+  not_mine = @tomcats.other_than($settings.catalina_home)
 
   separator()
-  puts my_tomcat_status
-  if !tomcat_info.empty?
+  puts status
+  if !not_mine.empty?
     puts
     puts "Other tomcats:"
-    tomcat_info.each() do |info|
+    not_mine.each() do |info|
       puts "    port #{info[:port]}, #{info[:path]}"
     end
   end
-
 end
 
-def find_tomcat_port(path)
+def figure_tomcat_status()
+  return "Tomcat is not defined." unless $settings.catalina_home
   begin
-    server_xml = File.expand_path('conf/server.xml', path)
-    doc = REXML::Document.new(File.open(server_xml))
-    doc.get_elements("Server/Service/Connector[@protocol='HTTP/1.1']").each do |e|
-      return e.attribute('port').value()
-    end
+    port = @tomcats.which_port($settings.catalina_home)
+    return "Tomcat is not running" unless port
+    return "Tomcat is running on port #{port}"
   rescue
-    warning($!)
-    "unknown"
+    return "No Tomcat at #{$settings.catalina_home}"
   end
 end
 
@@ -146,6 +109,9 @@ end
 # MAIN ROUTINE
 # ---------------------------------------------------------
 #
+
+@tomcats = TomcatStatus.new()
+@distro = Distro.new($settings.distro_path)
 
 show_instance_info()
 show_tomcat_status()

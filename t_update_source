@@ -14,22 +14,24 @@ $: << File.dirname(File.expand_path(__FILE__))
 require 'common'
 
 def do_update
-  raise SettingsError.new("VIVO source directory is not defined") unless $settings.vivo_source
-  raise SettingsError.new("Vitro source directory is not defined") unless $settings.vitro_source
+  distro = Distro.new($settings.distro_path)
 
-  if is_git($settings.vitro_source)
-    Dir.chdir($settings.vitro_source) { system "git pull" }
-    Dir.chdir($settings.vivo_source) { system "git pull" }
-  else
-    revision_info = get_revision_info($settings.vivo_source)
-    raise UserInputError.new("Not a git repository: release #{revision_info || "Unknown"}")
+  if distro.is_release()
+    raise UserInputError.new("Not a git repository: release #{distro.release_info}")
   end
+  
+    Dir.chdir(distro.vitro_path) { system "git pull" }
+    Dir.chdir(distro.vivo_path) { system "git pull" }
 end
 
 begin
   do_update
 rescue SettingsError
+  puts
   puts $!
+  puts
 rescue UserInputError
+  puts
   puts $!
+  puts
 end

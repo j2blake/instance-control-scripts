@@ -40,8 +40,7 @@ class InstanceControlProperties
   end
 
   def set_instance_defaults()
-    self.vivo_source = File.expand_path('VIVO', @instance_dir)
-    self.vitro_source = File.expand_path('Vitro', @instance_dir)
+    self.distro_path = @instance_dir
     self.catalina_home = File.expand_path('tomcat', @instance_dir)
   end
 
@@ -64,7 +63,6 @@ class InstanceControlProperties
 
   def initialize(path=nil)
     @props = {}
-
     @instance_dir = path || find_current_path()
     set_instance_defaults()
     read_from_instance()

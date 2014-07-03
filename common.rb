@@ -7,9 +7,12 @@
 --------------------------------------------------------------------------------
 =end
 
+require 'distro'
+require 'instance'
 require 'instance_control_properties'
 require 'property_file_reader'
 require 'template_processor'
+require 'tomcat_status'
 require 'keys'
 
 #
@@ -27,19 +30,6 @@ end
 
 def warning(message)
   puts("WARNING: #{message}")
-end
-
-def is_git(path)
-  File.exists?(File.expand_path('.git', path))
-end
-
-def get_revision_info(path)
-  revision_info = File.expand_path('revisionInfo', path)
-  begin
-    File.readlines(revision_info)[0].chomp
-  rescue
-    nil
-  end
 end
 
 #
