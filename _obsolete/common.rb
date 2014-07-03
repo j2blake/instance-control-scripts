@@ -1,23 +1,19 @@
+# Not independently executable
+
 =begin
 --------------------------------------------------------------------------------
 
-Stuff that all of the main scripts want to do:
-  require the helper scripts
-  create some global variables
-  set up some handy global methods
-
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 =end
 
 require 'distro'
 require 'instance'
+require 'instance_control_properties'
 require 'property_file_reader'
-require 'running_tomcats'
-require 'tomcat'
-
-$settings_file = ENV['HOME']+'/.instance-control.properties'
-$instance = Instance.create($settings_file)
-$all_tomcats = RunningTomcats.new()
+require 'template_processor'
+require 'tomcat_status'
+require 'keys'
 
 #
 # Helpful classes and utility methods.
@@ -35,3 +31,10 @@ end
 def warning(message)
   puts("WARNING: #{message}")
 end
+
+#
+# Initialize the current settings.
+#
+$settings_file = ENV['HOME']+'/.instance-control.properties'
+
+$settings = InstanceControlProperties.new()

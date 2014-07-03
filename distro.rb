@@ -1,5 +1,3 @@
-# Not independently executable
-
 =begin
 --------------------------------------------------------------------------------
 
@@ -13,72 +11,83 @@ Is it older than release 1.5?
 =end
 
 class Distro
-  # ------------------------------------------------------------------------------------
-  private
-  # ------------------------------------------------------------------------------------
-  #
-  def confirm_path()
-    throw SettingsError.new("Distribution directory doesn't exist: '#{@path}'") unless File.exist?(@path)
-    throw SettingsError.new("Distribution 'directory' is not a directory: '#{@path}'") unless Dir.exist?(@path)
-  end
-
-  def check_for_release()
-    release_dir = find_release_dir()
-    return unless release_dir
-    
-    @is_release = true
-    @vivo_path = release_dir
-    @vitro_path = File.expand_path('vitro-core', release_dir)
-    throw SettingsError.new("Can't find 'vitro-core' in '#{@path}'") unless File.exist?(@vitro_path)
-    @release_info = File.basename(release_dir)
-  end
-
-  def find_release_dir()
-    Dir.foreach(@path) do |filename|
-      if (filename.start_with?('vivo-rel-'))
-        return File.expand_path(filename, @path)
-      end
-    end
-  end
-  
-  def check_for_git
-    return if @is_release
-    
-    @is_release = false
-    @vivo_path = File.expand_path('VIVO', @path)
-    throw SettingsError.new("Can't find 'VIVO' working copy in '#{@path}'") unless File.exist?(@vivo_path)
-    @vitro_path = File.expand_path('Vitro', @path)
-    throw SettingsError.new("Can't find 'Vitro' working copy in '#{@path}'") unless File.exist?(@vitro_path)
-    @release_info = "Working copy"
-  end
-  
-  def check_is_old()
-    @is_before_1_5 = !File.exist?(File.expand_path('build.properties.example', @vivo_path))
-  end
-
-  # ------------------------------------------------------------------------------------
-  public
-  # ------------------------------------------------------------------------------------
-
   attr_reader :path
-  attr_reader :vivo_path
-  attr_reader :vitro_path
-  attr_reader :is_release
-  attr_reader :is_before_1_5
-  attr_reader :release_info
-
-  def initialize(path)
-    @path = path
-    confirm_path()
-    check_for_release()
-    check_for_git()
-    check_is_old()
-    raise SettingsError.new("Distribution directory must contain a release or repositories: #{@path}") unless @vivo_path
-  end
-  
+  attr_reader :props
   def file(filename)
     File.expand_path(filename, @path)
   end
 
+  def initialize(path)
+    @path = path
+    @props = PropertyFileReader.read(file('distro.properties'))
+    @props.merge!(default_paths()) {|k, v1, v2| v1}
+  end
+
+  def self.create(path)
+    distro = ReleaseDistro.new(path)
+    if !distro.valid?
+      distro = GitDistro.new(path)
+      if !distro.valid?
+        distro = EmptyDistro.new(path)
+      end
+    end
+    return distro
+  end
 end
 
+class ReleaseDistro < Distro
+  def valid?
+    @filename != 'bogus'
+  end
+
+  def default_paths()
+    {"vitro_path" => file(@filename), "vivo_path" => file(@filename + '/vitro-core')}
+  end
+
+  def status()
+    "Source status: Released distribution: #{@filename}"
+  end
+
+  def initialize(path)
+    @filename = 'bogus'
+    Dir.foreach(path) do |filename|
+      if (filename.start_with?('vivo-rel-'))
+        @filename = filename
+      end
+    end
+    
+    super
+  end
+end
+
+class GitDistro < Distro
+  def valid?
+    File.exist?(@props.vitro_path) && File.exist?(@props.vivo_path)
+  end
+
+  def default_paths()
+    {"vitro_path" => file('Vitro'), "vivo_path" => file('VIVO')}
+  end
+
+  def status()
+    puts "git status:"
+    puts "    VIVO:"
+    Dir.chdir(@props.vivo_path) { format_git_status(`git status`) }
+    puts "    Vitro:"
+    Dir.chdir(@props.vitro_path) { format_git_status(`git status`) }
+  end
+end
+
+class EmptyDistro < Distro
+  def default_paths()
+    {}
+  end
+  
+  def status()
+    "Not a valid distribution: #{@path}"
+  end
+
+  def initialize(path)
+    super
+  end
+end
