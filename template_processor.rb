@@ -1,5 +1,3 @@
-# Not independently executable
-
 =begin
 --------------------------------------------------------------------------------
 
@@ -10,6 +8,9 @@ Each key string should look something like this:
 
 This class will accept a hash of settings and make them available to the template.
 
+process() does the substitution as above
+process_complete() does the substitution and complains about any keys for which 
+   values were not found.  
 --------------------------------------------------------------------------------
 =end
 
@@ -37,6 +38,7 @@ class TemplateProcessor
   # or write it to a target file.
   #
   def self.process(props, source, target=nil)
+    raise SettingsError.new("#{source} doesn't exist") unless File.exist?(source)
     @settings = HandyHash.new().merge!(props);
 
     if target
@@ -53,5 +55,16 @@ class TemplateProcessor
         cooked = ERB.new(raw).result
       end
     end
+  end
+  
+  def self.process_complete(props, source, target=nil)
+    missing = list_required_keys(source) - props.keys
+    raise SettingsError.new("Missing these keys: #{missing}") unless missing.empty?
+    process(props, source, target) 
+  end
+  
+  def self.list_required_keys(source)
+    bogus("Totally bogus list_required_keys")
+    []
   end
 end

@@ -7,24 +7,6 @@ properties.
 --------------------------------------------------------------------------------
 =end
 
-class FunkyHash
-  def self.create()
-    hash = {}
-
-    def hash.method_missing method_id, *args
-      if args.empty?
-        self[method_id.to_s]
-      elsif method_id.to_s.end_with?('=')
-        self[method_id.to_s.chop] = args[0]
-      else
-        super
-      end
-    end
-
-    hash
-  end
-end
-
 class PropertyFileReader
   # Read a properties file and return a hash.
   #
@@ -34,7 +16,7 @@ class PropertyFileReader
   # the path to the properties file.
   #
   def self.read(file_path)
-    properties = FunkyHash.create
+    properties = {}
     properties["properties_file_path"] = File.expand_path(file_path)
 
     if File.exist?(file_path)

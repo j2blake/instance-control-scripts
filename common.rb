@@ -8,12 +8,19 @@ Stuff that all of the main scripts want to do:
 
 --------------------------------------------------------------------------------
 =end
-
 require 'distro'
+require 'hash_monkey_patch'
 require 'instance'
 require 'property_file_reader'
 require 'running_tomcats'
+require 'template_processor'
 require 'tomcat'
+
+module Kernel
+  def bogus(message)
+    puts(">>>>>>>>>>>>>BOGUS #{message}")
+  end
+end
 
 $settings_file = ENV['HOME']+'/.instance-control.properties'
 $instance = Instance.create($settings_file)
@@ -26,10 +33,6 @@ class UserInputError < StandardError
 end
 
 class SettingsError < StandardError
-end
-
-def bogus(message)
-  puts(">>>>>>>>>>>>>BOGUS #{message}")
 end
 
 def warning(message)

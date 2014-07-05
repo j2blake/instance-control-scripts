@@ -28,9 +28,13 @@ class Tomcat
     end
     'unknown'
   end
+  
+  def running?
+    $all_tomcats.is_running(self)
+  end
 
   def status()
-    if $all_tomcats.is_running(self)
+    if running?
       "Tomcat is running on port #{@port}"
     else
       "Tomcat is not running (#{@port})"

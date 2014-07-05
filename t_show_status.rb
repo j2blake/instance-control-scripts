@@ -33,7 +33,7 @@ end
 def show_tomcat_status()
   separator()
   puts $instance.tomcat.status
-  puts $all_tomcats.summarize_except_for($instance.tomcat)
+  $all_tomcats.summarize_except_for($instance.tomcat)
 end
 
 def show_distro_status()
