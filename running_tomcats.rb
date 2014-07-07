@@ -28,6 +28,15 @@ class RunningTomcats
       end
     end
   end
+  
+  def in_use?(port)
+    @tomcats.each() do |tc|
+      if (port == tc.port)
+        return true
+      end
+    end
+    return false
+  end
 
   def initialize
     @tomcats = []

@@ -11,6 +11,7 @@ Stuff that all of the main scripts want to do:
 require 'distro'
 require 'hash_monkey_patch'
 require 'instance'
+require 'knowledge_base'
 require 'property_file_reader'
 require 'running_tomcats'
 require 'site'

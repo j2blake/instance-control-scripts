@@ -11,9 +11,9 @@ Info about this VIVO instance
 class Instance
   attr_reader :path
   attr_reader :filename
-  attr_reader :description
   attr_reader :distro
   attr_reader :tomcat
+  attr_reader :knowledge_base
   attr_reader :props
   attr_reader :all_props
   def file(filename)
@@ -36,6 +36,7 @@ class Instance
     @site = Site.create(@props.site_home)
     @distro = Distro.create(@props.distro_home)
     @tomcat = Tomcat.create(@props.tomcat_home)
+    @knowledge_base = KnowledgeBase.create(@props.db_name)
 
     @all_props = @distro.props.merge(@tomcat.props).merge(@site.props).merge(@props)
   end

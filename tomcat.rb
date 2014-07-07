@@ -34,8 +34,22 @@ class Tomcat
     $all_tomcats.is_running(self)
   end
 
+  def shutting_down?
+    lines = `tail -50 #{@path}/logs/catalina.out`
+    lines.split("\n").reverse.each() do |line|
+      if line.include?("A valid shutdown command was received")
+        return true
+      elsif line.include?("Starting ProtocolHandler")
+        return false
+      end
+    end
+    false
+  end
+
   def status()
-    if running?
+    if shutting_down?
+      "Tomcat is running on port #{@port} (shutting down)"
+    elsif running?
       "Tomcat is running on port #{@port}"
     else
       "Tomcat is not running (#{@port})"

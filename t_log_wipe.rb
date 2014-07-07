@@ -3,24 +3,13 @@
 =begin
 --------------------------------------------------------------------------------
 
-Deploy VIVO, if Tomcat isn't running.
-
-Don't just run the build script. Also process the templates for build.properties
-and runtime.properties
-
-If the build fails, write that down. We won't want to run until its fixed.
+Erase the Tomcat logs, unless Tomcat is running
 
 --------------------------------------------------------------------------------
 =end
 
 $: << File.dirname(File.expand_path(__FILE__))
 require 'common'
-
-def record_result(success)
-  File.open("#{$instance.file('_successful')}", "w") do |file|
-    file.puts("deploy_success = #{success}")
-  end
-end
 
 #
 # ---------------------------------------------------------
@@ -30,13 +19,12 @@ end
 
 begin
   $instance.tomcat.confirm
-  $instance.distro.deploy($instance.all_props)
-  record_result(true)
+  raise UserInputError.new("Stop tomcat first.") if $instance.tomcat.running?
+  system("rm #{$instance.tomcat.path}/logs/*")
 rescue SettingsError
   puts
   puts $!
   puts
-  record_result(false)
 rescue UserInputError
   puts
   puts $!

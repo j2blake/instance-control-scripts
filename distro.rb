@@ -20,7 +20,9 @@ class Distro
   def deploy(configurator, all_props)
     raise UserInputError.new("Stop tomcat first.") if $instance.tomcat.running?
     configurator.process_template_files(all_props)
-    Dir.chdir(@props.vivo_path) { run_build_script(configurator.build_command()) }
+    Dir.chdir(@props.vivo_path) do
+      run_build_script(configurator.build_command()) 
+    end
   end
 
   def run_build_script(command)
@@ -164,7 +166,7 @@ class NewConfiguration
   def process_template_files(all_props)
     distro = $instance.distro
     TemplateProcessor.new(all_props).process_complete(distro.file('build.properties.template'), $instance.file('_generated.build.properties'))
-    TemplateProcessor.new(all_props).process_complete(distro.file('runtime.properties.template'), $instance.file('_generated.runtime.properties'))
+    TemplateProcessor.new(all_props).process_complete(distro.file('runtime.properties.template'), File.expand_path('runtime.properties', $instance.props.vivo_home))
   end
 
   def build_command()
