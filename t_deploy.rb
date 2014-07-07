@@ -21,7 +21,8 @@ require 'common'
 #
 
 begin
-  $instance.distro.deploy
+  $instance.tomcat.confirm
+  $instance.distro.deploy($instance.all_props)
 rescue SettingsError
   puts
   puts $!

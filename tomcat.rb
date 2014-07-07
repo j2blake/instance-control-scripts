@@ -11,6 +11,7 @@ require 'pathname'
 require 'rexml/document'
 
 class Tomcat
+  attr_reader :props
   attr_reader :path
   attr_reader :port
   def file(filename)
@@ -28,7 +29,7 @@ class Tomcat
     end
     'unknown'
   end
-  
+
   def running?
     $all_tomcats.is_running(self)
   end
@@ -53,11 +54,17 @@ class Tomcat
     end
   end
 
+  def confirm()
+    raise SettingsError.new("Tomcat directory '#{@path}' does not exist.") unless File.exist?(@path)
+    raise SettingsError.new("Tomcat is not valid: unknown port") if $instance.tomcat.port == "unknown"
+  end
+
   def initialize(path)
     @path = path
     @port = figure_port()
+    @props = {"tomcat_path" => @path, "tomcat_port" => @port}
   end
-  
+
   def self.create(path)
     if path
       Tomcat.new(path)

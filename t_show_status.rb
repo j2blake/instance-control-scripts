@@ -27,7 +27,7 @@ require 'pathname'
 
 def show_instance_info()
   separator()
-  puts "current instance: #{$instance.filename} -- #{$instance.description}"
+  puts "current instance: #{$instance.filename} -- #{$instance.props.description}"
 end
 
 def show_tomcat_status()

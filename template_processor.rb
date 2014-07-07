@@ -9,62 +9,62 @@ Each key string should look something like this:
 This class will accept a hash of settings and make them available to the template.
 
 process() does the substitution as above
-process_complete() does the substitution and complains about any keys for which 
-   values were not found.  
+process_complete() does the substitution and complains about any keys for which
+   values were not found.
 --------------------------------------------------------------------------------
 =end
-
-#
-# Members of this hash can be accessed using dot-notation.
-#
-class HandyHash < Hash
-  @props = {}
-
-  def method_missing method_id, *args
-    if args.empty?
-      @props[method_id.to_s]
-    else
-      super
-    end
-  end
-end
+require 'erb'
 
 #
 # The main class
 #
 class TemplateProcessor
+  def process_string(raw)
+    ERB.new(raw).result(binding)
+  end
+
   #
   # Process the source file and either return the result,
   # or write it to a target file.
   #
-  def self.process(props, source, target=nil)
+  def process(source, target=nil)
     raise SettingsError.new("#{source} doesn't exist") unless File.exist?(source)
-    @settings = HandyHash.new().merge!(props);
 
     if target
       File.open(source) do |source_file|
         File.open(target, 'w') do |target_file|
-          raw = source_file.read()
-          cooked = ERB.new(raw).result
-          target_file.write(cooked)
+          target_file.write(process_string(source_file.read()))
         end
       end
     else
       File.open(source) do |source_file|
-        raw = source_file.read()
-        cooked = ERB.new(raw).result
+        process_string(source_file.read())
       end
     end
   end
-  
-  def self.process_complete(props, source, target=nil)
-    missing = list_required_keys(source) - props.keys
-    raise SettingsError.new("Missing these keys: #{missing}") unless missing.empty?
-    process(props, source, target) 
+
+  #
+  # Check to insure that all keys have defined values before processing
+  #
+  def process_complete(source, target)
+    missing = list_required_keys(source) - @settings.keys.map() {|k| "@settings.#{k}"}
+    raise SettingsError.new("Missing values for these keys: #{missing}") unless missing.empty?
+    process(source, target)
   end
-  
-  def self.list_required_keys(source)
-    bogus("Totally bogus list_required_keys")
-    []
+
+  def list_required_keys(source)
+    # Look for <%= name %>
+    matches = []
+    File.open(source) do |source_file|
+      source_file.each do |line|
+        matches << line.scan(/<%=\s*([^%\s]+)\s*%>/)
+      end
+    end
+    return matches.flatten().sort.uniq
   end
+
+  def initialize(props)
+    @settings = props
+  end
+
 end

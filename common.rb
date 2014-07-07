@@ -13,6 +13,7 @@ require 'hash_monkey_patch'
 require 'instance'
 require 'property_file_reader'
 require 'running_tomcats'
+require 'site'
 require 'template_processor'
 require 'tomcat'
 
