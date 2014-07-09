@@ -26,7 +26,6 @@ end
 
 $settings_file = ENV['HOME']+'/.instance-control.properties'
 $instance = Instance.create($settings_file)
-$all_tomcats = RunningTomcats.new()
 
 #
 # Helpful classes and utility methods.

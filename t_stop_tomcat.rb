@@ -28,17 +28,17 @@ begin
 
   system("#{$instance.tomcat.path}/bin/catalina.sh stop")
 
-  raise SettingsError.new("Tomcat did not receive the shutdown command") unless $instance.tomcat.shutting_down?
+  sleep(1)
+  raise SettingsError.new("Tomcat did not receive the shutdown command") unless [:stopped, :stopping].include?($instance.tomcat.state)
 
-  5.times do |i|
-    sleep(1)
-    if ! $instance.tomcat.running?
-      return puts("Shut down.")
-    end
+  4.times do |i|
+    break unless $instance.tomcat.running?
     puts i+1
+    sleep(1)
   end
   
-  raise SettingsError.new("Tomcat has not shut down");
+  raise SettingsError.new("Tomcat has not shut down") if $instance.tomcat.running?
+  puts("Shut down.")  
 rescue SettingsError
   puts
   puts $!

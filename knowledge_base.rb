@@ -36,8 +36,9 @@ class SdbKnowledgeBase < KnowledgeBase
     puts "executing: #{commands}"
     file = Tempfile.new('kb')
     file.write(commands)
-    system("mysql -u root < #{file.path}")
     file.close
+    system("mysql -u root < #{file.path}")
+    file.unlink
   end
 
   def confirm()

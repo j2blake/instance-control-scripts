@@ -31,25 +31,16 @@ class Tomcat
   end
 
   def running?
-    $all_tomcats.is_running(self)
+    state != :stopped
   end
 
-  def shutting_down?
-    lines = `tail -50 #{@path}/logs/catalina.out`
-    lines.split("\n").reverse.each() do |line|
-      if line.include?("A valid shutdown command was received")
-        return true
-      elsif line.include?("Starting ProtocolHandler")
-        return false
-      end
-    end
-    false
-  end
-
-  def status()
-    if shutting_down?
+  def status_line()
+    case state()
+    when :stopping
       "Tomcat is running on port #{@port} (shutting down)"
-    elsif running?
+    when :starting
+      "Tomcat is running on port #{@port} (starting up)"
+    when :running
       "Tomcat is running on port #{@port}"
     else
       "Tomcat is not running (#{@port})"
@@ -66,6 +57,26 @@ class Tomcat
         false
       end
     end
+  end
+
+  def state()
+    return :stopped unless RunningTomcats.new().is_running(self)
+
+    log_file = File.expand_path('logs/catalina.out', @path)
+    return :running unless File.exist?(log_file)
+
+    File.readlines(log_file).reverse_each do |line|
+      if line.include?("A valid shutdown command was received")
+        return :stopping
+      elsif line.include?("Initializing ProtocolHandler") ||
+               # if we don't recognize anything since the last shutdown, we are starting.
+               line.include?("Destroying ProtocolHandler")
+        return :starting
+      elsif line.include?("Server startup in ")
+        return :running
+      end
+    end
+    return :running
   end
 
   def confirm()

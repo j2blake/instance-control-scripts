@@ -30,7 +30,7 @@ begin
   props = PropertyFileReader.read("#{$instance.file('_successful')}")
   raise UserInputError.new("Previous build failed.") unless props.deploy_success
   
-  puts `#{$instance.tomcat.path}/bin/catalina.sh start`
+  puts `#{$instance.tomcat.path}/bin/catalina.sh jpda start`
   code = $?.exitstatus || 0
   puts "Exited with code #{code}" unless code == 0
 rescue SettingsError

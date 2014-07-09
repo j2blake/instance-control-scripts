@@ -17,6 +17,7 @@ require 'common'
 #
 
 begin
+  raise UserInputError.new("Stop tomcat first.") if $instance.tomcat.running?
   $instance.knowledge_base.confirm
   $instance.knowledge_base.erase
   $instance.knowledge_base.create
