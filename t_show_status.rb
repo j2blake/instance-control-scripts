@@ -9,14 +9,20 @@ Show the state of the current instance, and what other Tomcats are running.
 
 Eventually, we want a display like this:
 
-    current instance: develop (The develop instance)
-    git status:
-        Vitro:
-        Vivo:
+  ------------------------------------------------
+  develop -- The develop instance
+  ------------------------------------------------
+  Tomcat: running                (not running, starting up, shutting down)
+    port 8080, jpda 4000, process 12344, -Xmx 2046m                 (default)
+  Other Tomcats:
+    /Users/jeb228/Testing/instances/florida-to-1.6.3/tomcat
+      port 8080, jpda 6040, process 20983, -Xmx 1029m
+  -------------------------------------------------
+  Source status:
+    Vitro:
+    Vivo:
     [or is distribution vivo-rel-1.6.2]
-    tomcat is [not] running.
-    Other tomcats:
-        port xxxx, /other/path/to/tomcat
+  -------------------------------------------------
 
 --------------------------------------------------------------------------------
 =end
@@ -27,7 +33,7 @@ require 'pathname'
 
 def show_instance_info()
   separator()
-  puts "current instance: #{$instance.filename} -- #{$instance.props.description}"
+  puts "#{$instance.filename} -- #{$instance.props.description}"
 end
 
 def show_tomcat_status()
@@ -37,14 +43,12 @@ def show_tomcat_status()
 end
 
 def show_distro_status()
-  separator
+  separator()
   puts $instance.distro.status
 end
 
 def separator()
-  puts
   puts "------------------------------------------------------------"
-  puts
 end
 
 #
@@ -56,3 +60,4 @@ end
 show_instance_info()
 show_tomcat_status()
 show_distro_status()
+separator()

@@ -13,7 +13,11 @@ require 'rexml/document'
 class Tomcat
   attr_reader :props
   attr_reader :path
+  attr_reader :pid
   attr_reader :port
+  attr_reader :jpda_port
+  attr_reader :max_heap
+  
   def file(filename)
     return File.expand_path(filename, @path)
   end
@@ -30,6 +34,24 @@ class Tomcat
     'unknown'
   end
 
+  def figure_jpda_port()
+    setenv_file = File.expand_path('bin/setenv.sh', @path)
+    return 'none' unless File.exist?(setenv_file)
+    return 'none' unless /JPDA_ADDRESS=(\S+)/ =~ File.read(setenv_file)
+    return $1
+  end
+
+  def figure_max_heap()
+    setenv_file = File.expand_path('bin/setenv.sh', @path)
+    return 'default' unless File.exist?(setenv_file)
+    return 'default' unless /-Xmx(\S+)/ =~ File.read(setenv_file)
+    return $1
+  end
+
+  def set_props()
+    @props = {"tomcat_path" => @path, "tomcat_port" => @port, "tomcat_pid" => @pid, "tomcat_jpda_port" => @jpda_port, "tomcat_max_heap" => @max_heap}
+  end
+
   def running?
     state != :stopped
   end
@@ -37,13 +59,13 @@ class Tomcat
   def status_line()
     case state()
     when :stopping
-      "Tomcat is running on port #{@port} (shutting down)"
+      "Tomcat is running (shutting down)\n   port #{@port}, pid #{get_pid()}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
     when :starting
-      "Tomcat is running on port #{@port} (starting up)"
+      "Tomcat is running (starting up)\n   port #{@port}, pid #{get_pid()}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
     when :running
-      "Tomcat is running on port #{@port}"
+      "Tomcat is running\n   port #{@port}, pid #{get_pid()}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
     else
-      "Tomcat is not running (#{@port})"
+      "Tomcat is not running\n   port #{@port}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
     end
   end
 
@@ -69,8 +91,8 @@ class Tomcat
       if line.include?("A valid shutdown command was received")
         return :stopping
       elsif line.include?("Initializing ProtocolHandler") ||
-               # if we don't recognize anything since the last shutdown, we are starting.
-               line.include?("Destroying ProtocolHandler")
+      # if we don't recognize anything since the last shutdown, we are starting.
+      line.include?("Destroying ProtocolHandler")
         return :starting
       elsif line.include?("Server startup in ")
         return :running
@@ -78,21 +100,28 @@ class Tomcat
     end
     return :running
   end
+  
+  def get_pid()
+    RunningTomcats.new().get_pid(self) || "0"
+  end
 
   def confirm()
     raise SettingsError.new("Tomcat directory '#{@path}' does not exist.") unless File.exist?(@path)
     raise SettingsError.new("Tomcat is not valid: unknown port") if $instance.tomcat.port == "unknown"
   end
 
-  def initialize(path)
+  def initialize(path, pid)
     @path = path
+    @pid = pid
     @port = figure_port()
-    @props = {"tomcat_path" => @path, "tomcat_port" => @port}
+    @jpda_port = figure_jpda_port()
+    @max_heap = figure_max_heap()
+    @props = set_props()
   end
 
   def self.create(path)
     if path
-      Tomcat.new(path)
+      Tomcat.new(path, "0")
     else
       EmptyTomcat.new()
     end
@@ -100,12 +129,16 @@ class Tomcat
 end
 
 class EmptyTomcat < Tomcat
-  def status()
+  def status_line()
     "Tomcat is not defined."
   end
 
   def initialize()
     @path = 'no current instance'
+    @pid = "0"
     @port = 'unknown'
+    @jpda_port = 'unknown'
+    @max_heap = 'unknown'
+    @props = set_props()
   end
 end
