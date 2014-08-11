@@ -28,6 +28,27 @@ class TdbKnowledgeBase < KnowledgeBase
   def create()
     system("mkdir #{$instance.vivo_home.path}/tdbContentModels")
   end
+
+  def size()
+    begin
+      return 0 unless /^(\d+)/ =~ `du -s #{$instance.vivo_home.path}/tdbContentModels`
+      $1.to_i()
+    rescue
+      0
+    end
+  end
+
+  def empty?()
+    return size() == 0
+  end
+
+  def to_s()
+    if empty?
+      "tdb: empty"
+    else
+      "tdb: #{size()} bytes"
+    end
+  end
 end
 
 class SdbKnowledgeBase < KnowledgeBase
@@ -55,6 +76,29 @@ class SdbKnowledgeBase < KnowledgeBase
     "create database #{@db_name} character set utf8 ; " +
     "grant all on #{@db_name}.* to vivoUser@localhost identified by 'vivoPass' ;"
     )
+  end
+
+  def size()
+    begin
+      command = "select TABLE_ROWS from information_schema.TABLES where TABLE_SCHEMA = '#{@db_name}' and TABLE_NAME = 'Quads';"
+      response = `echo "#{command}" | mysql -u root`
+      return 0 unless /(\d+)/ =~ response
+      return $1.to_i()
+    rescue
+      0
+    end
+  end
+
+  def empty?()
+    return size() == 0
+  end
+
+  def to_s()
+    if empty?
+      "database '#{@db_name}': empty"
+    else
+      "database '#{@db_name}': #{size()} triples"
+    end
   end
 
   def initialize(db_name)

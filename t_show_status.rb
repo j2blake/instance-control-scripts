@@ -47,6 +47,11 @@ def show_distro_status()
   puts $instance.distro.status
 end
 
+def show_kb_status()
+  separator()
+  puts "Knowledge base: \n   #{$instance.knowledge_base}"
+end
+
 def separator()
   puts "------------------------------------------------------------"
 end
@@ -60,4 +65,6 @@ end
 show_instance_info()
 show_tomcat_status()
 show_distro_status()
+show_kb_status()
 separator()
+puts

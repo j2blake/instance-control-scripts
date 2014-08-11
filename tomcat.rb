@@ -17,7 +17,7 @@ class Tomcat
   attr_reader :port
   attr_reader :jpda_port
   attr_reader :max_heap
-  
+  attr_reader :version
   def file(filename)
     return File.expand_path(filename, @path)
   end
@@ -48,8 +48,20 @@ class Tomcat
     return $1
   end
 
+  def figure_version()
+    release_notes = File.expand_path('RELEASE-NOTES', @path)
+    return 'unknown' unless File.exist?(release_notes)
+    return 'unknown' unless /Tomcat Version ([0-9.]+)/ =~ File.read(release_notes)
+    return $1
+  end
+
   def set_props()
-    @props = {"tomcat_path" => @path, "tomcat_port" => @port, "tomcat_pid" => @pid, "tomcat_jpda_port" => @jpda_port, "tomcat_max_heap" => @max_heap}
+    @props = {"tomcat_path" => @path,
+      "tomcat_port" => @port, 
+      "tomcat_pid" => @pid, 
+      "tomcat_jpda_port" => @jpda_port, 
+      "tomcat_max_heap" => @max_heap,
+      "tomcat_version" => @version}
   end
 
   def running?
@@ -59,14 +71,19 @@ class Tomcat
   def status_line()
     case state()
     when :stopping
-      "Tomcat is running (shutting down)\n   port #{@port}, pid #{get_pid()}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
+      state1 = "running (shutting down)"
+      process_id = "pid #{get_pid()}, "
     when :starting
-      "Tomcat is running (starting up)\n   port #{@port}, pid #{get_pid()}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
+      state1 = "running (starting up)"
+      process_id = "pid #{get_pid()}, "
     when :running
-      "Tomcat is running\n   port #{@port}, pid #{get_pid()}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
+      state1 = "running"
+      process_id = "pid #{get_pid()}, "
     else
-      "Tomcat is not running\n   port #{@port}, jpda #{@jpda_port}, -Xmx #{@max_heap}"
+      state1 = "not running"
+      process_id = ""
     end
+    "Tomcat #{@version} is #{state1}\n   port #{@port}, #{process_id}jpda #{@jpda_port}, -Xmx #{@max_heap}"
   end
 
   def matches(other)
@@ -100,7 +117,7 @@ class Tomcat
     end
     return :running
   end
-  
+
   def get_pid()
     RunningTomcats.new().get_pid(self) || "0"
   end
@@ -116,6 +133,7 @@ class Tomcat
     @port = figure_port()
     @jpda_port = figure_jpda_port()
     @max_heap = figure_max_heap()
+    @version = figure_version()
     @props = set_props()
   end
 
