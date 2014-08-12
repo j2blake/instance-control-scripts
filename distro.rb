@@ -61,7 +61,6 @@ class GitDistro < Distro
   end
 
   def status()
-    puts "git status:"
     puts "    VIVO:"
     Dir.chdir(@props.vivo_path) { format_git_status(`git status`) }
     puts "    Vitro:"
@@ -120,7 +119,7 @@ class ReleaseDistro < BaseReleaseDistro
   end
 
   def status()
-    "Source status: Released distribution: #{@props.release_name}"
+    "    Released distribution: #{@props.release_name}"
   end
 
   def deploy(all_props)
@@ -135,7 +134,7 @@ class OldReleaseDistro < BaseReleaseDistro
   end
 
   def status()
-    "Source status: Released distribution (pre-1.5): #{@props.release_name}"
+    "    Released distribution (pre-1.5): #{@props.release_name}"
   end
 
   def deploy(all_props)
@@ -150,7 +149,7 @@ class EmptyDistro < Distro
   end
 
   def status()
-    "Not a valid distribution: #{@path}"
+    "   Not a valid distribution: #{@path}"
   end
 
   def update()

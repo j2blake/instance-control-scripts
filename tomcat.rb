@@ -50,8 +50,8 @@ class Tomcat
 
   def figure_version()
     release_notes = File.expand_path('RELEASE-NOTES', @path)
-    return 'unknown' unless File.exist?(release_notes)
-    return 'unknown' unless /Tomcat Version ([0-9.]+)/ =~ File.read(release_notes)
+    return '(unknown)' unless File.exist?(release_notes)
+    return '(unknown)' unless /Tomcat Version ([0-9.]+)/ =~ File.read(release_notes)
     return $1
   end
 
