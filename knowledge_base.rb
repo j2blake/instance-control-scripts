@@ -22,16 +22,16 @@ class TdbKnowledgeBase < KnowledgeBase
   end
 
   def erase()
-    system("rm -rf #{$instance.vivo_home.path}/tdbContentModels")
+    system("rm -rf #{$instance.all_props.tdb_path}")
   end
 
   def create()
-    system("mkdir #{$instance.vivo_home.path}/tdbContentModels")
+    system("mkdir #{$instance.all_props.tdb_path}")
   end
 
   def size()
     begin
-      return 0 unless /^(\d+)/ =~ `du -s #{$instance.vivo_home.path}/tdbContentModels`
+      return 0 unless /^(\d+)/ =~ `du -s #{$instance.all_props.tdb_path}`
       $1.to_i()
     rescue
       0

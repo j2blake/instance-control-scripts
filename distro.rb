@@ -21,7 +21,7 @@ class Distro
     raise UserInputError.new("Stop tomcat first.") if $instance.tomcat.running?
     configurator.process_template_files(all_props)
     Dir.chdir(@props.vivo_path) do
-      run_build_script(configurator.build_command()) 
+      run_build_script(configurator.build_command())
     end
   end
 
@@ -61,14 +61,19 @@ class GitDistro < Distro
   end
 
   def status()
-    puts "    VIVO:"
-    Dir.chdir(@props.vivo_path) { format_git_status(`git status`) }
-    puts "    Vitro:"
-    Dir.chdir(@props.vitro_path) { format_git_status(`git status`) }
+    vivo_status = Dir.chdir(@props.vivo_path) do
+      format_git_status(`git status`) 
+    end
+    
+    vitro_status = Dir.chdir(@props.vitro_path) do
+      format_git_status(`git status`) 
+    end
+    
+    "    VIVO:\n#{vivo_status}    Vitro:\n#{vitro_status}"
   end
 
   def format_git_status(text)
-    puts "        #{text.split("\n").join("\n        ")}"
+    "        #{text.split("\n").select(){|s| !s.strip.empty?}.join("\n        ")}\n"
   end
 
   def update
