@@ -8,6 +8,8 @@ Stuff that all of the main scripts want to do:
 
 --------------------------------------------------------------------------------
 =end
+require 'fileutils'
+
 require 'distro'
 require 'hash_monkey_patch'
 require 'instance'

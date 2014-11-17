@@ -2,8 +2,9 @@
 --------------------------------------------------------------------------------
 
 Info about the source code distribution.
+
 Is it git repositories or a release?
-Is it older than release 1.5?
+Is it older than release 1.5? 1.8 or newer?
 
 --------------------------------------------------------------------------------
 
@@ -13,6 +14,12 @@ Is it older than release 1.5?
 class Distro
   attr_reader :path
   attr_reader :props
+  attr_reader :filename
+  def initialize(path)
+    @path = path
+    @filename = File.basename(path)
+  end
+
   def file(filename)
     File.expand_path(filename, @path)
   end
@@ -31,24 +38,30 @@ class Distro
 
   def self.create(path)
     begin
-      GitDistro.new(path)
-    rescue
+      Rel18GitDistro.new(path)
+    rescue Exception => e
+      puts ">>>>>>Exception #{e}"
+      puts e.backtrace.inspect
       begin
-        ReleaseDistro.new(path)
+        EarlyGitDistro.new(path)
       rescue
         begin
-          OldReleaseDistro.new(path)
+          ReleaseDistro.new(path)
         rescue
-          EmptyDistro.new(path)
+          begin
+            OldReleaseDistro.new(path)
+          rescue
+            EmptyDistro.new(path)
+          end
         end
       end
     end
   end
 end
 
-class GitDistro < Distro
+class EarlyGitDistro < Distro
   def initialize(path)
-    @path = path
+    super
     @props = {"vitro_path" => file('Vitro'), "vivo_path" => file('VIVO')}.merge(PropertyFileReader.read(file('distro.properties')))
     confirm_props()
   end
@@ -62,14 +75,14 @@ class GitDistro < Distro
 
   def status()
     vivo_status = Dir.chdir(@props.vivo_path) do
-      format_git_status(`git status`) 
+      format_git_status(`git status`)
     end
-    
+
     vitro_status = Dir.chdir(@props.vitro_path) do
-      format_git_status(`git status`) 
+      format_git_status(`git status`)
     end
-    
-    "    VIVO:\n#{vivo_status}    Vitro:\n#{vitro_status}"
+
+    "    Git Distribution\n    VIVO:\n#{vivo_status}    Vitro:\n#{vitro_status}"
   end
 
   def format_git_status(text)
@@ -84,11 +97,29 @@ class GitDistro < Distro
   def deploy(all_props)
     super(NewConfiguration.new(), all_props)
   end
+
+  def deploy(configurator, all_props)
+    super
+  end
+end
+
+class Rel18GitDistro < EarlyGitDistro
+  def confirm_props()
+    raise "No application setup" unless File.exist?(File.expand_path("config/applicationSetup.n3", @props.vivo_path))
+    super
+  end
+
+  def deploy(all_props)
+    configurator = Rel18Configuration.new()
+    super(configurator, all_props)
+    configurator.inject_application_setup(all_props)
+  end
+
 end
 
 class BaseReleaseDistro < Distro
   def initialize(path)
-    @path = path
+    super
     @props = {"vivo_path" => locate_release_dir()}.merge(PropertyFileReader.read(file('distro.properties')))
     @props.vitro_path = File.expand_path('vitro-core', @props.vivo_path)
     @props.release_name = File.basename(@props.vivo_path)
@@ -149,7 +180,7 @@ end
 
 class EmptyDistro < Distro
   def initialize(path)
-    @path = path
+    super
     @props = {}
   end
 
@@ -186,5 +217,13 @@ class OldConfiguration
 
   def build_command()
     "ant all -Ddeploy.properties.file=#{$instance.file('_generated.deploy.properties')}"
+  end
+end
+
+class Rel18Configuration < NewConfiguration
+  def inject_application_setup(all_props)
+    config_dir = File.expand_path('config', all_props.vivo_home)
+    application_setup = $instance.file('applicationSetup.n3')
+    FileUtils.cp(application_setup, config_dir) if File.exist?(application_setup)
   end
 end
