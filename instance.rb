@@ -3,6 +3,10 @@
 
 Info about this VIVO instance
 
+Create using factory methods:
+   Instance.from_settings_file(settings_file)
+   Instance.from_instance_path(instance_path)
+
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
@@ -41,10 +45,14 @@ class Instance
     @all_props = @distro.props.merge(@tomcat.props).merge(@site.props).merge(@props)
   end
 
-  def self.create(settings_file)
+  def self.from_settings_file(settings_file)
     settings = PropertyFileReader.read(settings_file)
-    if (settings.instance_path)
-      Instance.new(settings.instance_path)
+    self.from_instance_path(settings.instance_path);
+  end
+  
+  def self.from_instance_path(instance_path)
+    if (instance_path)
+      Instance.new(instance_path)
     else
       EmptyInstance.new()
     end

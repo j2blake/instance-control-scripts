@@ -1,0 +1,17 @@
+#
+# These functions make it possible to cd to some directory in the current instance.
+# The aliases enable auto-complete on the command line.
+#
+# This assumes that the ~/.bash_profile will source this file:
+# e.g.:
+#   . ~/git/instance-control-scripts/functions_and_aliases
+
+# cd to the VIVO home directory
+function t_cd_home { cd `awk '/home_path/ {print $3}' ~/.instance-control.properties`; }
+alias t_cd_home='t_cd_home'
+
+# cd to the Tomcat logs directory
+function t_cd_logs { cd `awk '/logs_path/ {print $3}' ~/.instance-control.properties`; }
+alias t_cd_logs='t_cd_logs'
+
+

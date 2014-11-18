@@ -72,11 +72,15 @@ def choose_instance()
 end
 
 def save_choice()
+  full_instance = Instance.from_instance_path(@instances[@choice-1].path)
+  
   File.open($settings_file, "w") do |file|
     file.puts("# The currently seleted instance")
-    file.puts("instance_path = #{@instances[@choice-1].path}")
+    file.puts("instance_path = #{full_instance.path}")
+    file.puts("logs_path = #{full_instance.tomcat.path}/logs")
+    file.puts("home_path = #{full_instance.props.vivo_home}")
   end
-  puts "instance set to '#{@instances[@choice-1].filename}'"
+  puts "instance set to '#{full_instance.filename}'"
 end
 
 #

@@ -27,7 +27,7 @@ module Kernel
 end
 
 $settings_file = ENV['HOME']+'/.instance-control.properties'
-$instance = Instance.create($settings_file)
+$instance = Instance.from_settings_file($settings_file)
 
 #
 # Helpful classes and utility methods.
