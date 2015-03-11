@@ -39,19 +39,21 @@ class Distro
   def self.create(path)
     begin
       Rel18GitDistro.new(path)
-    rescue Exception => e
-      puts ">>>>>>Exception #{e}"
-      puts e.backtrace.inspect
+    rescue 
       begin
         EarlyGitDistro.new(path)
       rescue
         begin
-          ReleaseDistro.new(path)
+          Rel15GitDistro.new(path)
         rescue
           begin
-            OldReleaseDistro.new(path)
+            ReleaseDistro.new(path)
           rescue
-            EmptyDistro.new(path)
+            begin
+              OldReleaseDistro.new(path)
+            rescue
+              EmptyDistro.new(path)
+            end
           end
         end
       end
@@ -71,6 +73,7 @@ class EarlyGitDistro < Distro
     raise "Vitro source is not git workspace" unless File.exist?(File.expand_path(".git", @props.vitro_path))
     raise "No VIVO source" unless File.exist?(@props.vivo_path)
     raise "VIVO source is not git workspace" unless File.exist?(File.expand_path(".git", @props.vivo_path))
+    raise "No example.build.properties" unless File.exist?(File.expand_path("example.build.properties", @props.vivo_path))
   end
 
   def status()
@@ -94,12 +97,8 @@ class EarlyGitDistro < Distro
     Dir.chdir(@props.vivo_path) { system "git pull" }
   end
 
-  def deploy(all_props)
-    super(NewConfiguration.new(), all_props)
-  end
-
-  def deploy(configurator, all_props)
-    super
+  def deploy(all_props, configurator=NewConfiguration.new())
+    super(configurator, all_props)
   end
 end
 
@@ -111,10 +110,23 @@ class Rel18GitDistro < EarlyGitDistro
 
   def deploy(all_props)
     configurator = Rel18Configuration.new()
-    super(configurator, all_props)
+    super(all_props, configurator)
     configurator.inject_application_setup(all_props)
   end
+end
 
+class Rel15GitDistro < EarlyGitDistro
+  def confirm_props()
+    raise "No Vitro source" unless File.exist?(@props.vitro_path)
+    raise "Vitro source is not git workspace" unless File.exist?(File.expand_path(".git", @props.vitro_path))
+    raise "No VIVO source" unless File.exist?(@props.vivo_path)
+    raise "VIVO source is not git workspace" unless File.exist?(File.expand_path(".git", @props.vivo_path))
+    raise "No example.deploy.properties" unless File.exist?(File.expand_path("example.deploy.properties", @props.vivo_path))
+  end
+
+  def deploy(all_props, configurator=OldConfiguration.new())
+    super(all_props, configurator)
+  end
 end
 
 class BaseReleaseDistro < Distro
