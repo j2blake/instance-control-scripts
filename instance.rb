@@ -23,6 +23,15 @@ class Instance
   def file(filename)
     File.expand_path(filename, @path)
   end
+  
+  # Get a file from the distro, unless overridden in the instance.
+  def distro_file(filename)
+    if File.exist?(file(filename))
+      file(filename)
+    else
+      @distro.file(filename)
+    end
+  end
 
   def initialize(path)
     @path = path
