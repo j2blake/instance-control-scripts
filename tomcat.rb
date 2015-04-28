@@ -22,6 +22,10 @@ class Tomcat
     return File.expand_path(filename, @path)
   end
 
+  def figure_pid()
+    RunningTomcats.new().get_pid(self) || "0"
+  end
+  
   def figure_port()
     begin
       doc = REXML::Document.new(File.open(file('conf/server.xml')))
@@ -72,13 +76,13 @@ class Tomcat
     case state()
     when :stopping
       state1 = "running (shutting down)"
-      process_id = "pid #{get_pid()}, "
+      process_id = "pid #{@pid}, "
     when :starting
       state1 = "running (starting up)"
-      process_id = "pid #{get_pid()}, "
+      process_id = "pid #{@pid}, "
     when :running
       state1 = "running"
-      process_id = "pid #{get_pid()}, "
+      process_id = "pid #{@pid}, "
     else
       state1 = "not running"
       process_id = ""
@@ -118,18 +122,14 @@ class Tomcat
     return :running
   end
 
-  def get_pid()
-    RunningTomcats.new().get_pid(self) || "0"
-  end
-
   def confirm()
     raise SettingsError.new("Tomcat directory '#{@path}' does not exist.") unless File.exist?(@path)
     raise SettingsError.new("Tomcat is not valid: unknown port") if $instance.tomcat.port == "unknown"
   end
 
-  def initialize(path, pid)
+  def initialize(path, pid = nil)
     @path = path
-    @pid = pid
+    @pid = pid || figure_pid()
     @port = figure_port()
     @jpda_port = figure_jpda_port()
     @max_heap = figure_max_heap()
@@ -139,7 +139,7 @@ class Tomcat
 
   def self.create(path)
     if path
-      Tomcat.new(path, "0")
+      Tomcat.new(path)
     else
       EmptyTomcat.new()
     end
