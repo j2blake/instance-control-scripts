@@ -27,7 +27,7 @@ begin
   port = $instance.tomcat.port
   raise UserInputError.new("Port #{port} is already in use") if RunningTomcats.new().in_use?(port)
   
-  props = PropertyFileReader.read("#{$instance.file('_successful')}")
+  props = PropertyFileReader.read("#{$instance.file('_generated/successful')}")
   raise UserInputError.new("Previous build failed.") unless props.deploy_success
   
   puts `#{$instance.tomcat.path}/bin/catalina.sh start`

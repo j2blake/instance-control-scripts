@@ -212,23 +212,25 @@ end
 class NewConfiguration
   def process_template_files(all_props)
     distro = $instance.distro
-    TemplateProcessor.new(all_props).process_complete(distro.file('build.properties.template'), $instance.file('_generated.build.properties'))
+    Dir.mkdir($instance.file('_generated')) unless Dir.exist?($instance.file('_generated'))
+    TemplateProcessor.new(all_props).process_complete(distro.file('build.properties.template'), $instance.file('_generated/build.properties'))
     TemplateProcessor.new(all_props).process_complete(distro.file('runtime.properties.template'), File.expand_path('runtime.properties', $instance.props.vivo_home))
   end
 
   def build_command()
-    "ant all -Dbuild.properties.file=#{$instance.file('_generated.build.properties')}"
+    "ant all -Dbuild.properties.file=#{$instance.file('_generated/build.properties')}"
   end
 end
 
 class OldConfiguration
   def process_template_files(all_props)
     distro = $instance.distro
-    TemplateProcessor.new(all_props).process_complete(distro.file('deploy.properties.template'), $instance.file('_generated.deploy.properties'))
+    Dir.mkdir($instance.file('_generated')) unless Dir.exist?($instance.file('_generated'))
+    TemplateProcessor.new(all_props).process_complete(distro.file('deploy.properties.template'), $instance.file('_generated/deploy.properties'))
   end
 
   def build_command()
-    "ant all -Ddeploy.properties.file=#{$instance.file('_generated.deploy.properties')}"
+    "ant all -Ddeploy.properties.file=#{$instance.file('_generated/deploy.properties')}"
   end
 end
 

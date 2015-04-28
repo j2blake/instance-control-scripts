@@ -17,7 +17,8 @@ $: << File.dirname(File.expand_path(__FILE__))
 require 'common'
 
 def record_result(success)
-  File.open("#{$instance.file('_successful')}", "w") do |file|
+  Dir.mkdir($instance.file('_generated')) unless Dir.exist?($instance.file('_generated'))
+  File.open("#{$instance.file('_generated/successful')}", "w") do |file|
     file.puts("deploy_success = #{success}")
   end
 end
