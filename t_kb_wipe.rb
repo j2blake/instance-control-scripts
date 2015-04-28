@@ -18,7 +18,15 @@ require 'common'
 
 begin
   raise UserInputError.new("Stop tomcat first.") if $instance.tomcat.running?
-  $instance.knowledge_base.confirm
+
+  begin
+    $instance.knowledge_base.confirm
+  rescue SettingsError
+    puts "Knowledge base does not exist: #{$instance.knowledge_base}."
+    puts "Create it? (y/n)"
+    raise UserInputError.new("OK") unless gets.chomp == 'y'
+  end
+  
   $instance.knowledge_base.erase
   $instance.knowledge_base.create
 rescue SettingsError

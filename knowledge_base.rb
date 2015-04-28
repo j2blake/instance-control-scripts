@@ -8,25 +8,64 @@ Info about the content models (knowledge base) for this data store.
 require 'tempfile'
 
 class KnowledgeBase
-  def self.create(db_name)
-    if db_name == 'tdb'
-      TdbKnowledgeBase.new()
+  def self.create(props)
+    case props.kb_type
+    when "sdb"
+      SdbKnowledgeBase.new(props)
+    when "tdb"
+      TdbKnowledgeBase.new(props)
     else
-      SdbKnowledgeBase.new(db_name)
+      EmptyKnowledgeBase.new(props)
     end
   end
 end
 
-class TdbKnowledgeBase < KnowledgeBase
+class EmptyKnowledgeBase < KnowledgeBase
+  def initialize(props)
+    warning "Settings do not contain a valid value for kb_type: #{props.kb_type}"
+  end
+
   def confirm()
+    raise "No knowledge base."
   end
 
   def erase()
-    system("rm -rf #{$instance.all_props.tdb_path}")
+    raise "No knowledge base."
   end
 
   def create()
-    system("mkdir #{$instance.all_props.tdb_path}")
+    raise "No knowledge base."
+  end
+
+  def size()
+    0
+  end
+
+  def empty?()
+    true
+  end
+
+  def to_s()
+    "No knowledge base"
+  end
+  
+end
+
+class TdbKnowledgeBase < KnowledgeBase
+  def initialize(props)
+    @path = props.tdb_path || "#{props.vivo_home}/tdbContent" 
+  end
+  
+  def confirm()
+    raise SettingsError.new("TDB directory doesn't exist at #{@path}") unless Dir.exist?(@path)
+  end
+
+  def erase()
+    system("rm -rf #{@path}")
+  end
+
+  def create()
+    system("mkdir #{@path}")
   end
 
   def size()
@@ -52,7 +91,11 @@ class TdbKnowledgeBase < KnowledgeBase
 end
 
 class SdbKnowledgeBase < KnowledgeBase
-  attr_reader :db_name
+  def initialize(props)
+    @db_name = props.db_name
+    raise SettingsError.new("Settings do not contain a value for db_name") unless @db_name
+  end
+
   def mysql(commands)
     puts "executing: #{commands}"
     file = Tempfile.new('kb')
@@ -101,7 +144,4 @@ class SdbKnowledgeBase < KnowledgeBase
     end
   end
 
-  def initialize(db_name)
-    @db_name = db_name
-  end
 end

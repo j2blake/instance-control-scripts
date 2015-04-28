@@ -8,26 +8,6 @@ Stuff that all of the main scripts want to do:
 
 --------------------------------------------------------------------------------
 =end
-require 'fileutils'
-
-require 'distro'
-require 'hash_monkey_patch'
-require 'instance'
-require 'knowledge_base'
-require 'property_file_reader'
-require 'running_tomcats'
-require 'site'
-require 'template_processor'
-require 'tomcat'
-
-module Kernel
-  def bogus(message)
-    puts(">>>>>>>>>>>>>BOGUS #{message}")
-  end
-end
-
-$settings_file = ENV['HOME']+'/.instance-control.properties'
-$instance = Instance.from_settings_file($settings_file)
 
 #
 # Helpful classes and utility methods.
@@ -41,3 +21,25 @@ end
 def warning(message)
   puts("WARNING: #{message}")
 end
+
+module Kernel
+  def bogus(message)
+    puts(">>>>>>>>>>>>>BOGUS #{message}")
+  end
+end
+
+require 'fileutils'
+
+require 'distro'
+require 'hash_monkey_patch'
+require 'instance'
+require 'knowledge_base'
+require 'property_file_reader'
+require 'running_tomcats'
+require 'site'
+require 'template_processor'
+require 'tomcat'
+
+$settings_file = ENV['HOME']+'/.instance-control.properties'
+$instance = Instance.from_settings_file($settings_file)
+
