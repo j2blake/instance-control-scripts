@@ -49,7 +49,7 @@ class Instance
     @site = Site.create(@props.site_home)
     @distro = Distro.create(@props.distro_home)
     @tomcat = Tomcat.create(@props.tomcat_home)
-    @knowledge_base = KnowledgeBase.create(@props)
+    @knowledge_base = KnowledgeBase.create(@props, self)
 
     @all_props = @distro.props.merge(@tomcat.props).merge(@site.props).merge(@props)
   end

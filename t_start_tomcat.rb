@@ -30,6 +30,8 @@ begin
   props = PropertyFileReader.read("#{$instance.file('_generated/successful')}")
   raise UserInputError.new("Previous build failed.") unless props.deploy_success
   
+  raise UserInputError.new("The triple store is not available.") unless $instance.knowledge_base.running?
+  
   puts `#{$instance.tomcat.path}/bin/catalina.sh start`
   code = $?.exitstatus || 0
   puts "Exited with code #{code}" unless code == 0

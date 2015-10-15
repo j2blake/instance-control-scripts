@@ -8,54 +8,66 @@ Info about the content models (knowledge base) for this data store.
 require 'tempfile'
 
 class KnowledgeBase
-  def self.create(props)
+  def self.create(props, instance)
     case props.kb_type
     when "sdb"
       SdbKnowledgeBase.new(props)
     when "tdb"
       TdbKnowledgeBase.new(props)
+    when "custom"
+      require instance.file("custom_knowledge_base")
+      CustomKnowledgeBase.new(props)
     else
-      EmptyKnowledgeBase.new(props)
+      raise SettingsError.new("Settings do not contain a valid value for kb_type: #{props.kb_type}")
     end
   end
 end
 
-class EmptyKnowledgeBase < KnowledgeBase
-  def initialize(props)
-    warning "Settings do not contain a valid value for kb_type: #{props.kb_type}"
-  end
-
+# The template for KnowledgeBase classes
+class KnowledgeBase
   def confirm()
-    raise "No knowledge base."
+    raise "KnowledgeBase.confirm() not implemented."
   end
 
   def erase()
-    raise "No knowledge base."
+    raise "KnowledgeBase.erase() not implemented."
   end
 
   def create()
-    raise "No knowledge base."
+    raise "KnowledgeBase.create() not implemented."
   end
 
   def size()
-    0
+    raise "KnowledgeBase.size() not implemented."
   end
 
   def empty?()
-    true
+    raise "KnowledgeBase.empty?() not implemented."
+  end
+
+  def running?()
+    raise "KnowledgeBase.running?() not implemented."
+  end
+
+  def startup()
+    raise "KnowledgeBase.startup() not implemented."
+  end
+
+  def shutdown()
+    raise "KnowledgeBase.shutdown() not implemented."
   end
 
   def to_s()
-    "No knowledge base"
+    raise "KnowledgeBase.to_s() not implemented."
   end
-  
+
 end
 
 class TdbKnowledgeBase < KnowledgeBase
   def initialize(props)
-    @path = props.tdb_path || "#{props.vivo_home}/tdbContent" 
+    @path = props.tdb_path || "#{props.vivo_home}/tdbContent"
   end
-  
+
   def confirm()
     raise SettingsError.new("TDB directory doesn't exist at #{@path}") unless Dir.exist?(@path)
   end
@@ -70,7 +82,7 @@ class TdbKnowledgeBase < KnowledgeBase
 
   def size()
     begin
-      return 0 unless /^(\d+)/ =~ `du -s #{$instance.all_props.tdb_path}`
+      return 0 unless /^(\d+)/ =~ `du -s #{@path}`
       $1.to_i()
     rescue
       0
@@ -79,6 +91,18 @@ class TdbKnowledgeBase < KnowledgeBase
 
   def empty?()
     return size() == 0
+  end
+
+  def running?()
+    true
+  end
+
+  def startup()
+    # No need to start up
+  end
+
+  def shutdown()
+    # No need to shut down
   end
 
   def to_s()
@@ -134,6 +158,18 @@ class SdbKnowledgeBase < KnowledgeBase
 
   def empty?()
     return size() == 0
+  end
+
+  def running?()
+    true
+  end
+
+  def startup()
+    # No need to start up
+  end
+
+  def shutdown()
+    # No need to shut down
   end
 
   def to_s()
