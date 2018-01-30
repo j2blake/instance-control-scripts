@@ -15,8 +15,8 @@ Info includes:
 
 module ICS
   OK_STATUS = "OK"
-  ENV_VAR = "VIVO_INSTANCES"
   class InstanceStub
+    ENV_VAR = "VIVO_INSTANCES"
     attr_reader :path
     attr_reader :name
     attr_reader :description
@@ -27,7 +27,7 @@ module ICS
       @description = description
       @status = status
     end
-    
+
     def valid?
       return @status == OK_STATUS
     end
@@ -51,7 +51,7 @@ module ICS
 
     def self.create_stub(path)
       return InstanceStub.new("", "no name", "no path", "Path is nil.") unless path
-      
+
       return InstanceStub.new(path, "no name", path, "Instance directory does not exist.") unless Dir.exist?(path)
 
       property_file = File.expand_path("instance.properties", path);

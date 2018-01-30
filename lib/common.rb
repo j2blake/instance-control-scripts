@@ -31,9 +31,13 @@ module Kernel
 end
 
 require 'fileutils'
+require 'rexml/document'
 
+require 'instance'
 require 'instance_stub'
 require 'property_file_reader'
+require 'running_tomcats'
+require 'tomcat'
 
 #require 'distro'
 #require 'hash_monkey_patch'
