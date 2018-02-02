@@ -59,6 +59,10 @@ module ICS
         return false
       end
     end
+    
+    def logs
+      File.expand_path("logs", @path)
+    end
 
     def self.create(tomcat_home)
       return Tomcat.new(tomcat_home)

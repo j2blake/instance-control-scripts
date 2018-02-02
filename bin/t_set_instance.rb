@@ -49,7 +49,8 @@ def choose_instance()
   if choice <= 0 || choice > @stubs.length
     raise UserInputError.new("Invalid index: '#{input}'")
   end
-  @chosen = @stubs[choice - 1]
+  
+  @chosen = ICS::Instance.new(@stubs[choice - 1].path)
 end
 
 def save_choice()
