@@ -10,7 +10,8 @@ module ICS
   class Tomcat
     attr_reader :path
     attr_reader :pid
-    attr_reader :port
+    attr_reader :port # a string containing the port number or the word "unknown"
+    #
     def figure_pid()
       RunningTomcats.new().get_pid(self) || "0"
     end
@@ -22,6 +23,7 @@ module ICS
           return e.attribute('port').value()
         end
       rescue
+        puts
         puts "WARNING: #{$!}"
       end
       'unknown'
@@ -33,9 +35,15 @@ module ICS
       @port = figure_port()
     end
 
+    #
+    # If it's not running, it's stopped. If it is running, get more details.
+    # Scan the log in reverse to find the most recent message that will tell us 
+    # the current state.
+    #
     def state()
-      return :stopped unless ICS::RunningTomcats.new.is_running(self)
+      return :stopped unless RunningTomcats.new.is_running(self)
 
+      # Why is there no log file if RunningTomcats says it's running? Don't mess with it. 
       log_file = File.expand_path('logs/catalina.out', @path)
       return :running unless File.exist?(log_file)
 
@@ -50,6 +58,10 @@ module ICS
       end
       return :running
     end
+    
+    def running?
+      state != :stopped
+    end
 
     def matches(other)
       return true if other.path == @path
@@ -62,6 +74,11 @@ module ICS
     
     def logs
       File.expand_path("logs", @path)
+    end
+    
+    def confirm()
+      raise SettingsError.new("Tomcat directory '#{@path}' does not exist.") unless File.exist?(@path)
+      raise SettingsError.new("Tomcat is not valid: unknown port") if @port.to_i == 0
     end
 
     def self.create(tomcat_home)

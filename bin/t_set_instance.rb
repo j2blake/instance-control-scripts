@@ -58,6 +58,8 @@ def save_choice()
     file.puts("# The currently seleted instance")
     file.puts("instance_path = #{@chosen.path}")
   end
+  
+  puts
   puts "instance set to '#{@chosen.name}'"
 end
 
