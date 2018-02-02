@@ -21,15 +21,16 @@ module ICS
     attr_reader :name
     attr_reader :description
     attr_reader :status
+    #
+    def valid?
+      return @status == OK_STATUS
+    end
+
     def initialize(path, name, description, status = OK_STATUS)
       @path = path
       @name = name
       @description = description
       @status = status
-    end
-
-    def valid?
-      return @status == OK_STATUS
     end
 
     #
@@ -49,6 +50,11 @@ module ICS
       return current_stub, all_stubs.select { |s| s.valid? }, all_stubs.select { |s| !s.valid? }
     end
 
+    #
+    # Return a stub for this path. 
+    # If we have problems, the stub will contains some dummy values and a status
+    # that is not OK.
+    #
     def self.create_stub(path)
       return InstanceStub.new("", "no name", "no path", "Path is nil.") unless path
 

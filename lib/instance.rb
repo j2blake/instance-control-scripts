@@ -20,6 +20,7 @@ module ICS
     attr_reader :status
     attr_reader :tomcat
     attr_reader :vivo_home
+    #
     def valid?
       return @status == OK_STATUS
     end

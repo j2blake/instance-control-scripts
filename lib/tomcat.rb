@@ -22,7 +22,7 @@ module ICS
           return e.attribute('port').value()
         end
       rescue
-        puts $!
+        puts "WARNING: #{$!}"
       end
       'unknown'
     end
