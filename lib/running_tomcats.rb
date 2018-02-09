@@ -40,7 +40,7 @@ module ICS
       @tomcats = []
       ps = `ps -ef | grep -e '-Dcatalina.home'`
       ps.split("\n").each() do |line|
-        @tomcats << Tomcat.new($2, $1) if /^\s*\d+\s*(\d+).*-Dcatalina.home=(\S+)/ =~ line
+        @tomcats << Tomcat.new($2, $1) if /^\s*\d+\s*(\d+).*-Dcatalina.base=(\S+)/ =~ line
       end
     end
   end
