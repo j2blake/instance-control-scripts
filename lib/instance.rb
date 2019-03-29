@@ -20,6 +20,7 @@ module ICS
     attr_reader :status
     attr_reader :tomcat
     attr_reader :vivo_home
+    attr_reader :distro
     #
     def valid?
       return @status == OK_STATUS
@@ -36,14 +37,16 @@ module ICS
         'name'=> '(no name)',
         'description' => '(no description)',
         'tomcat_home' => file('tomcat'),
-        'vivo_home' => file('vivo_home')
+        'vivo_home' => file('vivo_home'),
+        'distro' => $defaults['distro']
       }
       props.merge!(PropertyFileReader.read(file('instance.properties')))
 
       @name = props['name']
       @description = props['description']
-      @tomcat = ICS::Tomcat::create(props['tomcat_home'])
+      @tomcat = ICS::Tomcat.new(props['tomcat_home'])
       @vivo_home = props['vivo_home']
+      @distro = ICS::Distro.new(props['distro'])
 
       @status = OK_STATUS
     end
@@ -69,6 +72,7 @@ module ICS
       @description = '(no description)'
       @tomcat = ICS::EmptyTomcat.new()
       @vivo_home = '/no_vivo_home'
+      @distro = ICS::EmptyDistro.new()
     end
   end
 end

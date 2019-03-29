@@ -80,10 +80,6 @@ module ICS
       raise SettingsError.new("Tomcat directory '#{@path}' does not exist.") unless File.exist?(@path)
       raise SettingsError.new("Tomcat is not valid: unknown port") if @port.to_i == 0
     end
-
-    def self.create(tomcat_home)
-      return Tomcat.new(tomcat_home)
-    end
   end
 
   class EmptyTomcat < Tomcat
